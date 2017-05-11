@@ -1,0 +1,39 @@
+language: python
+
+python:
+  - 2.7
+
+before_install:
+  - sudo apt-get purge openjdk*
+  - sudo apt-get purge oracle-java7-*
+  - nvm install 6; nvm alias default node
+  - npm install yarn -g
+
+addons:
+  apt:
+    packages:
+      - oracle-java8-installer
+      - oracle-java8-set-default
+
+env:
+  global:
+    - JAVA_HOME=/usr/lib/jvm/java-8-oracle
+    - AWS_ACCESS_KEY_ID=foobar
+    - AWS_SECRET_ACCESS_KEY=foobar
+    - AWS_DEFAULT_REGION=us-east-1
+
+install:
+  - git clone https://github.com/atlassian/localstack.git
+  - cd localstack
+  - travis_wait 10 make install
+  - travis_wait 10 make init
+  - DEBUG=1 make infra &
+  - sleep 30
+  - cd ..
+
+before_script:
+  - yarn
+  - patch node_modules/serverless/lib/plugins/aws/provider/awsProvider.js < serverless.patch
+
+script:
+  - SLS_DEBUG=* node_modules/.bin/serverless deploy

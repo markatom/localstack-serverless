@@ -1,0 +1,31 @@
+--- ../collector/node_modules/serverless/lib/plugins/aws/provider/awsProvider.js	2017-02-23 12:04:21.000000000 +0100
++++ node_modules/serverless/lib/plugins/aws/provider/awsProvider.js	2017-05-18 21:48:52.000000000 +0200
+@@ -123,6 +123,7 @@
+   }
+ 
+   request(service, method, params) {
++    console.log(service, method, params);
+     const that = this;
+     const credentials = that.getCredentials();
+     const persistentRequest = (f) => new BbPromise((resolve, reject) => {
+@@ -160,8 +161,11 @@
+               ].join('');
+               err.message = errorMessage;
+             }
+-            reject(new this.serverless.classes.Error(err.message, err.statusCode));
++            const error = new this.serverless.classes.Error(err.message, err.statusCode);
++            console.log(error);
++            reject(error);
+           } else {
++            console.log(data);
+             resolve(data);
+           }
+         });
+@@ -187,6 +191,7 @@
+     impl.addEnvironmentProfile(result, `AWS_${stageUpper}`);
+ 
+     result.region = this.getRegion();
++    result.endpoint = 'http://localhost:4581';
+     return result;
+   }
+ 

@@ -1,0 +1,44 @@
+service: test
+
+provider:
+  name: aws
+  runtime: nodejs6.10
+
+package:
+  individually: true
+  exclude:
+    - '**'
+
+resources:
+  Resources:
+    testTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: testTable
+        AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        StreamSpecification:
+          StreamViewType: NEW_IMAGE
+
+functions:
+  test:
+    handler: handler.handler
+    package:
+      include:
+        - handler.js
+    events:
+      - stream:
+          type: dynamodb
+          batchSize: 10
+          startingPosition: LATEST
+          arn:
+            Fn::GetAtt:
+              - testTable
+              - StreamArn
